@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thunder - AI Chat</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family: "Inter", sans-serif;
+        background-color: black;
+        overflow: hidden;
+        color: white;
+      }
+
+      .stars {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+      }
+
+      .star {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 2s infinite;
+      }
+
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.2;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+
+      .sidebar {
+        width: 270px;
+        background: #0d0d0d;
+        border-right: 1px solid #222;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 2px 0 10px rgba(255, 255, 255, 0.05);
+      }
+
+      .sidebar-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .sidebar-header h2 {
+        font-size: 1.5rem;
+        background: linear-gradient(to right, #fceabb, #f8b500);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      #recent-chat-list {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .conversation {
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+      }
+
+      .conversation:hover {
+        background: #2b2b2b;
+        border-color: #555;
+      }
+
+      #clearChatsBtn,
+      #newChatBtn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        border: 1px solid #333;
+        transition: background 0.3s;
+      }
+
+      #newChatBtn {
+        background-color: #1e1e1e;
+        color: #e0be10;
+        margin-bottom: 15px;
+      }
+
+      #newChatBtn:hover {
+        background-color: #333;
+      }
+
+      #clearChatsBtn {
+        background: #222;
+        color: #f8b500;
+        margin-top: 20px;
+      }
+
+      #clearChatsBtn:hover {
+        background-color: #333;
+      }
+
+      .main-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 30px 20px 20px;
+      }
+
+      .branding {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .branding h1 {
+        font-size: 3.2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #fceabb, #f8b500);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .tagline {
+        font-size: 1.2rem;
+        color: #aaa;
+        margin-top: 6px;
+      }
+
+      .chat-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        border: 1px solid #333;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+      }
+
+      .chat-header {
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px 16px;
+        background: rgba(30, 30, 30, 0.8);
+        border-bottom: 1px solid #444;
+      }
+
+      #clearConversationBtn,
+      #copyBtn,
+      #shareBtn {
+        margin-left: 10px;
+        padding: 6px 12px;
+        background-color: #1e1e1e;
+        color: #f8b500;
+        border: 1px solid #444;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      #clearConversationBtn:hover,
+      #copyBtn:hover,
+      #shareBtn:hover {
+        background-color: #333;
+      }
+
+      #messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        scroll-behavior: smooth;
+      }
+
+      .message {
+        max-width: 75%;
+        padding: 12px 16px;
+        margin: 10px;
+        border-radius: 18px;
+        font-size: 1rem;
+        line-height: 1.5;
+        position: relative;
+        word-wrap: break-word;
+        animation: fadeIn 0.4s ease-in-out;
+        padding-right: 36px; /* space for copy button */
+      }
+
+      .user {
+        align-self: flex-end;
+        background: linear-gradient(to right, #4b6cb7, #182848);
+        color: #fff;
+        border-bottom-right-radius: 5px;
+      }
+
+      .bot {
+        align-self: flex-start;
+        background: linear-gradient(to left, #434343, #000000);
+        color: #e0e0e0;
+        border-bottom-left-radius: 5px;
+      }
+
+      .copy-single-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 10px;
+        background: transparent;
+        border: none;
+        color: #aaa;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .copy-single-btn:hover {
+        color: #f8b500;
+      }
+
+      #input-area {
+        display: flex;
+        padding: 16px;
+        background: rgba(20, 20, 20, 0.8);
+        border-top: 1px solid #555;
+      }
+
+      #userInput {
+        flex: 1;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        background-color: #111;
+        color: white;
+        border: 1px solid #333;
+      }
+
+      #sendBtn {
+        margin-left: 10px;
+        padding: 14px 24px;
+        font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        background-color: #f8b500;
+        color: black;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      #sendBtn:hover {
+        background-color: #d89e00;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: 100%;
+          height: 150px;
+          border-right: none;
+          border-bottom: 1px solid #333;
+        }
+
+        .main-container {
+          padding: 20px;
+        }
+
+        .branding h1 {
+          font-size: 2.4rem;
+        }
+
+        .chat-box {
+          height: 75vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+      <div class="sidebar">
+        <div>
+          <div class="sidebar-header"><h2>⚡ Thunder</h2></div>
+          <button id="newChatBtn">➕ New Chat</button>
+          <div id="recent-chat-list"></div>
+        </div>
+        <button id="clearChatsBtn">🗑 Clear Chats</button>
+      </div>
+
+      <div class="main-container">
+        <div class="branding">
+          <h1>Thunder AI</h1>
+          <p class="tagline">Unleashing Lightning-fast Conversations</p>
+        </div>
+        <div class="chat-box">
+          <div class="chat-header">
+            <button id="clearConversationBtn">🧹 Clear Conversation</button>
+            <button id="copyBtn">📋 Copy</button>
+            <button id="shareBtn">📤 Share</button>
+          </div>
+          <div id="messages"></div>
+          <div id="input-area">
+            <input
+              type="text"
+              id="userInput"
+              placeholder="Ask me anything..."
+            />
+            <button id="sendBtn" onclick="sendMessage()">Ask</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const starsContainer = document.getElementById("stars");
+      const numStars = 150;
+      for (let i = 0; i < numStars; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        star.style.top = Math.random() * 100 + "%";
+        star.style.left = Math.random() * 100 + "%";
+        star.style.animationDuration = Math.random() * 3 + 2 + "s";
+        starsContainer.appendChild(star);
+      }
+
+      function createMessageElement(text, className) {
+        const msgWrapper = document.createElement("div");
+        msgWrapper.classList.add("message", className);
+
+        const msgText = document.createElement("div");
+        msgText.textContent = text;
+
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "copy-single-btn";
+        copyBtn.textContent = "📋";
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(text).then(() => {
+            copyBtn.textContent = "✅";
+            setTimeout(() => (copyBtn.textContent = "📋"), 1500);
+          });
+        };
+
+        msgWrapper.appendChild(msgText);
+        msgWrapper.appendChild(copyBtn);
+        return msgWrapper;
+      }
+
+      async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const text = input.value.trim();
+        if (!text) return;
+
+        const messages = document.getElementById("messages");
+        messages.appendChild(createMessageElement(text, "user"));
+        input.value = "";
+
+        try {
+          const res = await fetch("http://localhost:3000/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text }),
+          });
+          const data = await res.json();
+          messages.appendChild(createMessageElement(data.reply, "bot"));
+        } catch (e) {
+          messages.appendChild(
+            createMessageElement("⚠️ Error: Failed to get response.", "bot")
+          );
+        }
+
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function saveRecentChat(text) {
+        if (!text) return;
+        let chats = JSON.parse(localStorage.getItem("recentChats")) || [];
+        text = text.trim();
+        if (!chats.includes(text)) {
+          chats.unshift(text);
+          if (chats.length > 10) chats.pop();
+          localStorage.setItem("recentChats", JSON.stringify(chats));
+          updateSidebar();
+        }
+      }
+
+      function updateSidebar() {
+        const chatList = document.getElementById("recent-chat-list");
+        chatList.innerHTML = "";
+        const chats = JSON.parse(localStorage.getItem("recentChats")) || [];
+        chats.forEach((chat) => {
+          const div = document.createElement("div");
+          div.className = "conversation";
+          div.textContent = chat.length > 50 ? chat.slice(0, 50) + "..." : chat;
+          div.addEventListener("click", () => {
+            document.getElementById("userInput").value = chat;
+            document.getElementById("userInput").focus();
+          });
+          chatList.appendChild(div);
+        });
+      }
+
+      function clearChats() {
+        localStorage.removeItem("recentChats");
+        updateSidebar();
+      }
+
+      function clearConversation() {
+        const botMessages = document.querySelectorAll("#messages .message.bot");
+        if (botMessages.length > 0) {
+          const lastBotMessage =
+            botMessages[botMessages.length - 1].textContent.trim();
+          saveRecentChat(lastBotMessage);
+        }
+        document.getElementById("messages").innerHTML = "";
+      }
+
+      function newChat() {
+        document.getElementById("messages").innerHTML = "";
+        document.getElementById("userInput").value = "";
+      }
+
+      function getConversationText() {
+        const messages = document.querySelectorAll("#messages .message");
+        let text = "";
+        messages.forEach((msg) => {
+          const sender = msg.classList.contains("user") ? "You" : "Bot";
+          text += `${sender}: ${msg.textContent.trim()}\n\n`;
+        });
+        return text.trim();
+      }
+
+      function copyConversation() {
+        const text = getConversationText();
+        navigator.clipboard
+          .writeText(text)
+          .then(() => alert("✅ Conversation copied to clipboard!"))
+          .catch(() => alert("⚠️ Failed to copy conversation."));
+      }
+
+      function shareConversation() {
+        const text = getConversationText();
+        if (navigator.share) {
+          navigator
+            .share({ title: "Shared Thunder Chat", text: text })
+            .catch((err) => console.error("Sharing failed:", err));
+        } else {
+          copyConversation();
+          alert("Sharing not supported. Conversation copied to clipboard.");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        updateSidebar();
+        document
+          .getElementById("clearChatsBtn")
+          .addEventListener("click", clearChats);
+        document
+          .getElementById("clearConversationBtn")
+          .addEventListener("click", clearConversation);
+        document
+          .getElementById("newChatBtn")
+          .addEventListener("click", newChat);
+        document
+          .getElementById("copyBtn")
+          .addEventListener("click", copyConversation);
+        document
+          .getElementById("shareBtn")
+          .addEventListener("click", shareConversation);
+      });
+    </script>
+  </body>
+</html>
