@@ -3,7 +3,8 @@ const axios = require("axios");
 const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
-const GEMINI_API_KEY = "AIzaSyCEFcNuTF7gTmVj2mYZUTEoLs5Ykuqtj4Q";
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const app = express();
 app.use(cors());
