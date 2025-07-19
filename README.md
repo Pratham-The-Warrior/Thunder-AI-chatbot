@@ -1,4 +1,4 @@
-# Thunder-AI-chatbot
+# Doodle
 Chatbot server powered by Google's Gemini API
 
 A simple yet extensible chatbot server built with Node.js and powered by Google's Gemini API. This project provides a robust backend for conversational AI applications, suitable for learning, experimentation, and real-world deployments.
